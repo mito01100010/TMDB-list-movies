@@ -1,5 +1,6 @@
 const API_SEARCH_URL = "https://api.themoviedb.org/3/search/movie?api_key=###&query=";
-const IMG_URL = "https://image.tmdb.org/t/p/w500"
+const IMG_URL = "https://image.tmdb.org/t/p/w500";
+let apiData = [];
 
 function readTextFile(file) {
     if (file.files && file.files[0]) {
@@ -67,6 +68,7 @@ function reqMovie(url) {
     fetch(url)
         .then((response) => response.json())
         .then((data) => {
+            apiData.push(data.results[0]);
             showMovie(data.results[0]); // [0] is most relevant movie title
         });
 }
@@ -94,13 +96,18 @@ function showMovie(data) {
 function changeToSave() {
     let btn = document.getElementById("btn-prev");
 
-    btn.id = "btn-save";
-    btn.textContent = "Save";
-    clickOnCheckbox();
+    if (btn !== null) {
+        btn.id = "btn-save";
+        btn.textContent = "Save";
+        clickOnCheckbox();
+        clickOnSave();
+    }
 }
 
 function clickOnCheckbox() {
     const checkboxes = document.querySelectorAll("input[type=checkbox]");
+
+    apiData = [];
     
     checkboxes.forEach(box => box.onclick = () => { changeToPrev() });
 }
@@ -108,8 +115,35 @@ function clickOnCheckbox() {
 function changeToPrev() {
     let btn = document.getElementById("btn-save");
 
-    btn.id = "btn-prev";
-    btn.textContent = "Preview";
+    if (btn !== null) {
+        btn.id = "btn-prev";
+        btn.textContent = "Preview";
+    }
 
     clickOnPreview();
+}
+
+function clickOnSave() {
+    const btn = document.getElementById("btn-save");
+
+    btn.onclick = () => {
+        let movie = document.querySelectorAll('.movie');
+
+        if (movie) {
+            movie.forEach(e => e.remove());
+        }
+
+        apiData.forEach(e => endpoint(e));
+
+        changeToPrev();
+    }
+}
+
+function endpoint(data) {
+	const jsonString = JSON.stringify(data);
+	const xhr = new XMLHttpRequest();
+
+	xhr.open("POST", "receive.php");
+	xhr.setRequestHeader("Content-Type", "application/json");
+	xhr.send(jsonString);
 }
