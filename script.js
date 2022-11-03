@@ -1,4 +1,4 @@
-const API_SEARCH_URL = "https://api.themoviedb.org/3/search/movie?api_key=###&query=";
+const API_SEARCH_URL = "https://api.themoviedb.org/3/search/movie" + API_KEY + "&query=";
 const IMG_URL = "https://image.tmdb.org/t/p/w500";
 let apiData = [];
 
@@ -9,7 +9,7 @@ function readTextFile(file) {
         reader.onload = (e) => {
             const allText = e.target.result;
             const lines = allText.split("\n");
-            
+
             for (let i = 0; i < lines.length; i++) {
                 addSelectOpt(lines[i]);
             }
@@ -47,7 +47,7 @@ function addPreviewBtn() {
 
 function clickOnPreview() {
     const btnPrev = document.getElementById("btn-prev");
-    
+
     btnPrev.onclick = () => {
         let checkedValue = document.querySelectorAll('.movie-title-opt:checked');
         let movie = document.querySelectorAll('.movie');
@@ -57,14 +57,14 @@ function clickOnPreview() {
         }
 
         checkedValue.forEach(e => {
-            reqMovie(API_SEARCH_URL + e.value.replaceAll(/\s+/g, '+'));
+            getMovie(API_SEARCH_URL + e.value.replaceAll(/\s+/g, '+'));
         });
 
         changeToSave();
     };
 }
 
-function reqMovie(url) {
+function getMovie(url) {
     fetch(url)
         .then((response) => response.json())
         .then((data) => {
@@ -74,23 +74,33 @@ function reqMovie(url) {
 }
 
 function showMovie(data) {
-    const {poster_path, overview, title} = data;
+    const { poster_path, overview, title, id } = data;
     const ul = document.getElementById("list-movie-titles");
     const input = ul.querySelector(`input[value="${title.toLowerCase()}"]`);
     const movieEle = document.createElement("div");
 
-    movieEle.classList.add("movie");
-    movieEle.innerHTML = `
-        <figure class="movie__image">
-            <img src="${IMG_URL+poster_path}" alt="${title}">
-        </figure>
+    (async () => {
+        let ress = await getCredits(id);
+        let { actorOne, actorTwo, director } = ress;
 
-        <div class="movie__overview">
-            <p>${overview}</p>
-        </div>
-    `;
+        movieEle.classList.add("movie");
+        movieEle.innerHTML = `
+            <figure class="movie__image">
+                <img src="${IMG_URL + poster_path}" alt="${title}">
+            </figure>
 
-    input.parentElement.appendChild(movieEle);
+            <div class="movie__overview">
+                <p>${overview}</p>
+            </div>
+
+            <div class="movie__about">
+                <p>Main actors: ${actorOne} ${actorTwo}</p>
+                <p>Director: ${director}</p>
+            </div>
+        `;
+
+        input.parentElement.appendChild(movieEle);
+    })()
 }
 
 function changeToSave() {
@@ -108,7 +118,7 @@ function clickOnCheckbox() {
     const checkboxes = document.querySelectorAll("input[type=checkbox]");
 
     apiData = [];
-    
+
     checkboxes.forEach(box => box.onclick = () => { changeToPrev() });
 }
 
@@ -140,10 +150,34 @@ function clickOnSave() {
 }
 
 function endpoint(data) {
-	const jsonString = JSON.stringify(data);
-	const xhr = new XMLHttpRequest();
+    const jsonString = JSON.stringify(data);
+    const xhr = new XMLHttpRequest();
 
-	xhr.open("POST", "receive.php");
-	xhr.setRequestHeader("Content-Type", "application/json");
-	xhr.send(jsonString);
+    xhr.open("POST", "receive.php");
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send(jsonString);
+}
+
+async function getCredits(id) {
+    const API_CREDITS = "https://api.themoviedb.org/3/movie/" + id + "/credits" + API_KEY + "&language=en-US";
+
+    let res = await fetch(API_CREDITS)
+        .then((response) => response.json())
+        .then((data) => {
+            const { cast, crew } = data;
+            let actorOne, actorTwo, director;
+
+            crew.forEach(e => {
+                if (e.job === "Director") {
+                    director = e.name;
+                }
+            })
+
+            actorOne = cast[0].name;
+            actorTwo = cast[1].name;
+            
+            return { actorOne, actorTwo, director };
+        });
+
+    return res;
 }
