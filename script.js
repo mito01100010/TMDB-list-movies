@@ -3,6 +3,10 @@ const IMG_URL = "https://image.tmdb.org/t/p/w500";
 let apiData = [];
 
 function readTextFile(file) {
+    let ul = document.getElementById('list-movie-titles');
+    const div = document.getElementById("movie-information");
+    let btn = div.getElementsByTagName("button")[0];
+
     if (file.files && file.files[0]) {
         const reader = new FileReader();
 
@@ -18,6 +22,14 @@ function readTextFile(file) {
         }
         reader.readAsText(file.files[0]);
     }
+
+    if (ul) {
+        ul.innerHTML = '';
+    }
+
+    if (btn) {
+        btn.remove();
+    }
 }
 
 function addSelectOpt(str) {
@@ -26,9 +38,11 @@ function addSelectOpt(str) {
     const checkbox = document.createElement("input");
     const label = document.createElement("label");
 
+    str = str.trim();
+    
     checkbox.classList.add("movie-title-opt");
     checkbox.type = "checkbox";
-    checkbox.value = str.trim();
+    checkbox.value = str.toLowerCase();
 
     movieTitles.appendChild(li);
     li.appendChild(checkbox);
@@ -40,6 +54,7 @@ function addPreviewBtn() {
     const movieInformation = document.getElementById("movie-information");
     const btn = document.createElement("button");
 
+    btn.classList.add("btn");
     btn.setAttribute("id", "btn-prev");
     btn.textContent = "Preview";
     movieInformation.appendChild(btn);
