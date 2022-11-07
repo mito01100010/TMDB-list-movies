@@ -1,4 +1,4 @@
-const API_SEARCH_URL = "https://api.themoviedb.org/3/search/movie" + secrets.API_KEY + "&query=";
+const API_SEARCH_URL = "https://api.themoviedb.org/3/search/movie" + API_KEY + "&query=";
 const IMG_URL = "https://image.tmdb.org/t/p/w500";
 let apiData = [];
 
@@ -159,7 +159,7 @@ function endpoint(data) {
 }
 
 async function getCredits(id) {
-    const API_CREDITS = "https://api.themoviedb.org/3/movie/" + id + "/credits" + secrets.API_KEY + "&language=en-US";
+    const API_CREDITS = "https://api.themoviedb.org/3/movie/" + id + "/credits" + API_KEY + "&language=en-US";
 
     let res = await fetch(API_CREDITS)
         .then((response) => response.json())
